@@ -1,0 +1,17 @@
+{
+    "name": "imarc/trolly",
+    "description": "A simple PHP shopping cart",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "license": "MIT",
+    "authors": [
+        {
+            "name":  "Matthew J. Sahagian",
+            "email": "matthew.sahagian@gmail.com",
+            "role":  "Lead Architect / Developer"
+        }
+    ],
+    "autoload": {
+        "classmap": ["src/"]
+    }
+}
