@@ -95,24 +95,6 @@ class Cart
 	/**
 	 *
 	 */
-	public function clearItems(): Cart
-	{
-		$this->data['items'] = array();
-	}
-
-
-	/**
-	 *
-	 */
-	public function clearPromotions(): Cart
-	{
-		$this->data['promotions'] = array();
-	}
-
-
-	/**
-	 *
-	 */
 	public function getItems(callable $filter = NULL): array
 	{
 		if (!$filter) {
@@ -208,6 +190,43 @@ class Cart
 		}
 
 		return $price;
+	}
+
+
+	/**
+	 *
+	 */
+	public function removeItems(string ...$keys): Cart
+	{
+		if (count($keys)) {
+			foreach ($keys as $key) {
+				unset($this->data['items'][md5($key)]);
+			}
+
+		} else {
+			$this->data['items'] = array();
+
+		}
+
+		return $this;
+	}
+
+
+	/**
+	 *
+	 */
+	public function removePromotions(string ...$keys): Cart
+	{
+		if (count($keys)) {
+			foreach ($keys as $key) {
+				unset($this->data['promotions'][md5($key)]);
+			}
+
+		} else {
+			$this->data['promotions'] = array();
+		}
+
+		return $this;
 	}
 
 
