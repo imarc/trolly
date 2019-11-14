@@ -10,7 +10,7 @@ interface Item
 	/**
 	 * Get the group to which this item belongs.
 	 */
-	public function getItemGroup(): string;
+	public function getItemGroup(array $context = array()): string;
 
 
 	/**

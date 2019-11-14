@@ -126,12 +126,12 @@ class Cart
 	/**
 	 *
 	 */
-	public function getItemGroups(): array
+	public function getItemGroups(array $context = array()): array
 	{
 		$groups = array();
 
 		foreach ($this->data['items'] as $item) {
-			$group = $item->getItemGroup();
+			$group = $item->getItemGroup($context);
 
 			if (!isset($groups[$group])) {
 				$groups[$group] = array();
