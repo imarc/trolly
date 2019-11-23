@@ -244,9 +244,9 @@ class Cart
 	/**
 	 *
 	 */
- 	public function walkItems($callback): Cart
+ 	public function walk($callback): Cart
  	{
- 		array_walk($this->data['items'], $callback, $cart);
+ 		array_walk($this->data['items'], $callback, $this);
  	}
 
 
