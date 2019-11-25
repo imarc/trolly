@@ -34,13 +34,15 @@ class Cart
 	/**
 	 *
 	 */
-	public function __construct(Storage $storage, Pricer ...$pricers)
+	protected $normalizers = array();
+
+
+	/**
+	 *
+	 */
+	public function __construct(Storage $storage)
 	{
 		$this->storage = $storage;
-		$this->pricers = $pricers;
-
-
-		$this->load();
 	}
 
 
@@ -49,21 +51,26 @@ class Cart
 	 */
 	public function addItem(Item $item): Cart
 	{
-		$key = md5($item->getItemKey());
+		$existing_item = $this->getItem($item->getItemKey());
 
-		if (isset($this->data['items'][$key])) {
+		if ($existing_item) {
 			if (!$item instanceof Quantifiable) {
 				throw new InvalidItemException('This item is already added to the cart.');
 			}
 
-			$item->setItemQuantity($this->data['items'][$key]->getItemQuantity() + 1);
+			$existing_item->setItemQuantity(
+				$existing_item->getItemQuantity()
+				+ $item->getItemQuantity()
+			);
+
+		} else {
+			$this->data['items'][] = $item;
 		}
 
-		$this->data['items'][$key] = $item;
 		$this->refresh();
 
-		if (!isset($this->data['items'][$key])) {
-			throw new InvalidItemException('This item could not be added at this time.');
+		if (!$this->getItem($item->getItemKey())) {
+			throw new InvalidItemException('The item could not be added at this time.');
 		}
 
 		return $this;
@@ -75,20 +82,32 @@ class Cart
 	 */
 	public function addPromotion(Promotion $promotion): Cart
 	{
-		$key = md5(strtolower($promotion->getPromotionKey()));
+		$existing_promotion = $this->getPromotion($promotion->getPromotionKey());
 
-		if (isset($this->data['promotions'][$key])) {
-			throw new InvalidPromotionException('This promotion is already added to the cart.');
+		if ($existing_promotion) {
+			throw new InvalidPromotionException('The promotion could not be added at this time.');
+		} else {
+			$this->data['promotions'][] = $promotion;
 		}
 
-		$this->data['promotions'][$key] = $promotion;
 		$this->refresh();
 
-		if (!isset($this->data['promotions'][$key])) {
+		if (!$this->getPromotion($promotion->getPromotionKey())) {
 			throw new InvalidPromotionException('This promotion does not apply to anything.');
 		}
 
 		return $this;
+	}
+
+
+	/**
+	 *
+	 */
+	public function getItem(string $key)
+	{
+		return $this->getItems(function($item) use ($key) {
+			return $item->getItemKey() == $key;
+		})[0] ?? NULL;
 	}
 
 
@@ -129,6 +148,17 @@ class Cart
 	/**
 	 *
 	 */
+	public function getPromotion(string $key)
+	{
+		return $this->getPromotions(function($promotion) use ($key) {
+			return $promotion->getPromotionKey() == $key;
+		})[0] ?? NULL;
+	}
+
+
+	/**
+	 *
+	 */
 	public function getPromotions(callable $filter = NULL): array
 	{
 		if (!$filter) {
@@ -159,10 +189,22 @@ class Cart
 	 */
 	public function load(): Cart
 	{
-		$this->data = $this->storage->load() + [
+		$data = $this->storage->load() + [
 			'items'      => [],
 			'promotions' => []
 		];
+
+		foreach ($data as $key => $values) {
+			foreach ($values as $index => $value) {
+				foreach ($this->normalizers as $normalizer) {
+					if ($normalizer->match($value)) {
+						$data[$key][$index] = $normalizer->denormalize($value);
+					}
+				}
+			}
+		}
+
+		$this->data = $data;
 
 		return $this;
 	}
@@ -199,9 +241,9 @@ class Cart
 	public function removeItems(string ...$keys): Cart
 	{
 		if (count($keys)) {
-			foreach ($keys as $key) {
-				unset($this->data['items'][md5($key)]);
-			}
+			$this->data['items'] = $this->getItems(function($item) use ($keys) {
+				return !in_array($item->getItemKey(), $keys);
+			});
 
 		} else {
 			$this->data['items'] = array();
@@ -233,9 +275,39 @@ class Cart
 	/**
 	 *
 	 */
+	public function setNormalizers(Normalizer ...$normalizers)
+	{
+		$this->normalizers = $normalizers;
+	}
+
+
+	/**
+	 *
+	 */
+	public function setPricers(Pricer ...$pricers)
+	{
+		$this->pricers = $pricers;
+	}
+
+
+	/**
+	 *
+	 */
 	public function save(): Cart
 	{
-		$this->storage->save($this->data);
+		$data = $this->data;
+
+		foreach ($data as $key => $values) {
+			foreach ($values as $index => $value) {
+				foreach ($this->normalizers as $normalizer) {
+					if ($normalizer->match($value)) {
+						$data[$key][$index] = $normalizer->normalize($value);
+					}
+				}
+			}
+		}
+
+		$this->storage->save($data);
 
 		return $this;
 	}
