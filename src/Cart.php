@@ -105,9 +105,13 @@ class Cart
 	 */
 	public function getItem(string $key)
 	{
-		return $this->getItems(function($item) use ($key) {
-			return $item->getItemKey() == $key;
-		})[0] ?? NULL;
+		foreach ($this->getItems() as $item) {
+			if ($item->getItemKey() == $key) {
+				return $item;
+			}
+		}
+
+		return NULL;
 	}
 
 
@@ -150,9 +154,13 @@ class Cart
 	 */
 	public function getPromotion(string $key)
 	{
-		return $this->getPromotions(function($promotion) use ($key) {
-			return $promotion->getPromotionKey() == $key;
-		})[0] ?? NULL;
+		foreach ($this->getPromotions() as $promotion) {
+			if ($promotion->getPromotionKey() == $key) {
+				return $promotion;
+			}
+		}
+
+		return NULL;
 	}
 
 
