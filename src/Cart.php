@@ -221,13 +221,13 @@ class Cart
 	/**
 	 *
 	 */
-	public function price(Item $item)
+	public function price(Item $item, int $flags = 0)
 	{
 		$price = 0;
 
 		foreach ($this->pricers as $pricer) {
 			if ($pricer->match($item)) {
-				$price = $pricer->price($item, $this);
+				$price = $pricer->price($item, $this, $flags);
 			}
 		}
 
