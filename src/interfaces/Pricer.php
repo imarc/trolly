@@ -25,5 +25,5 @@ interface Pricer
 	 *
 	 * @return float The price of the item
 	 */
-	public function price(Item $item, Cart $cart, int $flags = 0): float;
+	public function price(Item $item, Cart $cart, int $flags = 0, array $context = array()): float;
 }

@@ -103,7 +103,7 @@ class Cart
 	/**
 	 *
 	 */
-	public function getItem(string $key)
+	public function getItem(string $key): ?Item
 	{
 		foreach ($this->getItems() as $item) {
 			if ($item->getItemKey() == $key) {
@@ -221,13 +221,13 @@ class Cart
 	/**
 	 *
 	 */
-	public function price(Item $item, int $flags = 0)
+	public function price(Item $item, int $flags = 0, array $context = array())
 	{
 		$price = 0;
 
 		foreach ($this->pricers as $pricer) {
 			if ($pricer->match($item)) {
-				$price = $pricer->price($item, $this, $flags);
+				$price = $pricer->price($item, $this, $flags, $context);
 			}
 		}
 
