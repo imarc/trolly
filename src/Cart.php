@@ -49,19 +49,25 @@ class Cart
 	/**
 	 *
 	 */
-	public function addItem(Item $item): Cart
+	public function addItem(Item $item, $replace_if_exists = FALSE): Cart
 	{
 		$existing_item = $this->getItem($item->getItemKey());
 
 		if ($existing_item) {
-			if (!$item instanceof Quantifiable) {
-				throw new InvalidItemException('This item is already added to the cart.');
-			}
+			if ($replace_if_exists) {
+				$this->removeItems($item->getItemKey());
 
-			$existing_item->setItemQuantity(
-				$existing_item->getItemQuantity()
-				+ $item->getItemQuantity()
-			);
+				$this->data['items'][] = $item;
+
+			} elseif ($item instanceof Quantifiable) {
+				$existing_item->setItemQuantity(
+					$existing_item->getItemQuantity() + $item->getItemQuantity()
+				);
+
+			} else {
+				throw new InvalidItemException('This item is already added to the cart.');
+
+			}
 
 		} else {
 			$this->data['items'][] = $item;
