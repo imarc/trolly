@@ -333,6 +333,8 @@ class Cart
  	public function walk($callback): Cart
  	{
  		array_walk($this->data['items'], $callback, $this);
+
+		return $this;
  	}
 
 
