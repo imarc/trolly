@@ -158,6 +158,24 @@ class Cart
 	/**
 	 *
 	 */
+	public function getPricer(Item $item): Pricer
+	{
+		foreach ($this->pricers as $pricer) {
+			if ($pricer->match($item)) {
+				return $pricer;
+			}
+		}
+
+		throw new RuntimeException(sprintf(
+			'Cannot find pricer for item of type "%s", none registered',
+			get_class($item)
+		));
+	}
+
+
+	/**
+	 *
+	 */
 	public function getPromotion(string $key)
 	{
 		foreach ($this->getPromotions() as $promotion) {
@@ -227,15 +245,10 @@ class Cart
 	/**
 	 *
 	 */
-	public function price(Item $item, int $flags = 0, array $context = array())
+	public function price(Item $item, int $flags = 0, array $context = array()): float
 	{
-		$price = 0;
-
-		foreach ($this->pricers as $pricer) {
-			if ($pricer->match($item)) {
-				$price = $pricer->price($item, $this, $flags, $context);
-			}
-		}
+		$pricer = $this->getPricer($item);
+		$price  = $pricer->price($item, $this, $flags, $context);
 
 		if ($item instanceof Quantifiable) {
 			$price = $price * $item->getItemQuantity();
