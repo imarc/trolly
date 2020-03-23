@@ -59,7 +59,7 @@ class Cart
 
 				$this->data['items'][] = $item;
 
-			} elseif ($item instanceof Quantifiable) {
+			} elseif ($item instanceof Item\Quantifiable) {
 				$existing_item->setItemQuantity(
 					$existing_item->getItemQuantity() + $item->getItemQuantity()
 				);
@@ -250,11 +250,11 @@ class Cart
 		$pricer = $this->getPricer($item);
 		$price  = $pricer->price($item, $this, $flags, $context);
 
-		if ($item instanceof Quantifiable) {
+		if ($item instanceof Item\Quantifiable) {
 			$price = $price * $item->getItemQuantity();
 		}
 
-		if ($item instanceof Discountable) {
+		if ($item instanceof Item\Discountable) {
 			$price = $price + array_sum($item->getItemDiscounts());
 		}
 
@@ -358,7 +358,7 @@ class Cart
 	{
 		$applied_promotions = array();
 		$discountable_items = $this->getItems(function($item) {
-			return $item instanceof Discountable;
+			return $item instanceof Item\Discountable;
 		});
 
 		foreach ($discountable_items as $item) {
