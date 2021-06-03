@@ -93,6 +93,11 @@ class Cart
 		foreach ($items as $item) {
 			while ($item) {
 				$discount = $promotion->getQualifiedItemDiscount($item, $this);
+				$price    = $this->price($item);
+
+				if ($discount > $price) {
+					$discount = $price;
+				}
 
 				if ($discount) {
 					$item->setItemDiscount($promo_key, $discount * -1);
@@ -100,7 +105,7 @@ class Cart
 					$count++;
 				} else {
 					$item->setItemDiscount($promo_key, 0);
-					$item = array_unshift($holds);
+					$item = array_shift($holds);
 				}
 			}
 		}
@@ -255,6 +260,7 @@ class Cart
 				foreach ($this->normalizers as $normalizer) {
 					if ($normalizer->match($value)) {
 						$data[$key][$index] = $normalizer->denormalize($value);
+						break;
 					}
 				}
 			}
