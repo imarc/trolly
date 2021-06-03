@@ -4,7 +4,6 @@ namespace Trolly;
 
 use RuntimeException;
 use InvalidArgumentException;
-use Psr\Cache\CacheItemPoolInterface;
 use Trolly\Item\Discountable;
 
 class Cart
@@ -75,7 +74,7 @@ class Cart
 			$this->data['items'][] = $item;
 		}
 
-		return $this;
+		return $this->refresh();
 	}
 
 
@@ -295,12 +294,35 @@ class Cart
 	/**
 	 *
 	 */
+	public function refresh(): Cart
+	{
+		$promotions = $this->getPromotions();
+
+		$this->removePromotions();
+
+		foreach ($promotions as $promotion) {
+			try {
+				$this->addPromotion($promotion);
+			} catch (InvalidPromotionException $e) {
+				continue;
+			}
+		}
+
+		return $this;
+	}
+
+
+	/**
+	 *
+	 */
 	public function removeItems(string ...$keys): Cart
 	{
 		if (!count($keys)) {
-			return $this->removeItems(...array_map(function ($item) {
-				return $item->getItemKey();
-			}, $this->getItems()));
+			if (count($this->getItems())) {
+				return $this->removeItems(...array_map(function ($item) {
+					return $item->getItemKey();
+				}, $this->getItems()));
+			}
 
 		} else {
 			foreach ($keys as $key) {
@@ -316,7 +338,7 @@ class Cart
 			});
 		}
 
-		return $this;
+		return $this->refresh();
 	}
 
 
@@ -326,9 +348,11 @@ class Cart
 	public function removePromotions(string ...$keys): Cart
 	{
 		if (!count($keys)) {
-			return $this->removePromotions(...array_map(function ($promotion) {
-				return $promotion->getPromotionKey();
-			}, $this->getPromotions()));
+			if (count($this->getPromotions())) {
+				return $this->removePromotions(...array_map(function ($promotion) {
+					return $promotion->getPromotionKey();
+				}, $this->getPromotions()));
+			}
 
 		} else {
 			$discountable_items = $this->getItems(function($item) {
