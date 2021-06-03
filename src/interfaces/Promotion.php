@@ -7,15 +7,6 @@ namespace Trolly;
  */
 interface Promotion
 {
-	const LEVEL_CART = 1;
-	const LEVEL_ITEM = 2;
-
-	/**
-	 *
-	 */
-	public function discount(Item\Discountable $item, Cart $cart): float;
-
-
 	/**
 	 *
 	 */
@@ -25,5 +16,11 @@ interface Promotion
 	/**
 	 *
 	 */
-	public function getPromotionScope(): int;
+	public function getQualifiedItems(Cart $cart, array &$holds = array(), array &$throws = array()): array;
+
+
+	/**
+	 *
+	 */
+	public function getQualifiedItemDiscount(Item $item, Cart $cart): float;
 }

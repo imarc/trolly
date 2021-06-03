@@ -8,6 +8,8 @@ namespace Trolly\Item;
  */
 interface Quantifiable
 {
+	const PRICE_ITEM_QUANTITY = 4294967296;
+
 	/**
 	 * Get the quantity of the item to be purchased.
 	 *

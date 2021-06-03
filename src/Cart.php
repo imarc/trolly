@@ -2,8 +2,10 @@
 
 namespace Trolly;
 
-use Psr\Cache\CacheItemPoolInterface;
 use RuntimeException;
+use InvalidArgumentException;
+use Psr\Cache\CacheItemPoolInterface;
+use Trolly\Item\Discountable;
 
 class Cart
 {
@@ -40,9 +42,10 @@ class Cart
 	/**
 	 *
 	 */
-	public function __construct(Storage $storage)
+	public function __construct(Storage $storage, $purchaser = NULL)
 	{
-		$this->storage = $storage;
+		$this->storage   = $storage;
+		$this->purchaser = $purchaser;
 	}
 
 
@@ -56,8 +59,7 @@ class Cart
 		if ($existing_item) {
 			if ($replace_if_exists) {
 				$this->removeItems($item->getItemKey());
-
-				$this->data['items'][] = $item;
+				$this->addItem($item);
 
 			} elseif ($item instanceof Item\Quantifiable) {
 				$existing_item->setItemQuantity(
@@ -73,12 +75,6 @@ class Cart
 			$this->data['items'][] = $item;
 		}
 
-		$this->refresh();
-
-		if (!$this->getItem($item->getItemKey())) {
-			throw new InvalidItemException('The item could not be added at this time.');
-		}
-
 		return $this;
 	}
 
@@ -88,19 +84,38 @@ class Cart
 	 */
 	public function addPromotion(Promotion $promotion): Cart
 	{
-		$existing_promotion = $this->getPromotion($promotion->getPromotionKey());
+		$holds        = array();
+		$throw        = array();
+		$count        = 0;
+		$items        = $promotion->getQualifiedItems($this, $holds, $throw);
+		$promo_key    = $promotion->getPromotionKey();
 
-		if ($existing_promotion) {
-			throw new InvalidPromotionException('The promotion could not be added at this time.');
-		} else {
-			$this->data['promotions'][] = $promotion;
+		foreach ($items as $item) {
+			while ($item) {
+				$discount = $promotion->getQualifiedItemDiscount($item, $this);
+
+				if ($discount) {
+					$item->setItemDiscount($promo_key, $discount * -1);
+					$item = NULL;
+					$count++;
+				} else {
+					$item->setItemDiscount($promo_key, 0);
+					$item = array_unshift($holds);
+				}
+			}
 		}
 
-		$this->refresh();
-
-		if (!$this->getPromotion($promotion->getPromotionKey())) {
-			throw new InvalidPromotionException('This promotion does not apply to anything.');
+		if (!$count) {
+			throw new InvalidPromotionException(
+				'No items qualified for discounts via this promotion.'
+			);
 		}
+
+		foreach ($holds as $hold) {
+			$hold->setItemDiscount($promo_key, 0);
+		}
+
+		$this->data['promotions'][] = $promotion;
 
 		return $this;
 	}
@@ -204,6 +219,15 @@ class Cart
 	/**
 	 *
 	 */
+	public function getPurchaser()
+	{
+		return $this->purchaser;
+	}
+
+
+	/**
+	 *
+	 */
 	public function getTotal(): float
 	{
 		$total = 0;
@@ -250,11 +274,11 @@ class Cart
 		$pricer = $this->getPricer($item);
 		$price  = $pricer->price($item, $this, $flags, $context);
 
-		if ($item instanceof Item\Quantifiable) {
+		if ($item instanceof Item\Quantifiable && (empty($flags) || $flags & $item::PRICE_QUANTITY)) {
 			$price = $price * $item->getItemQuantity();
 		}
 
-		if ($item instanceof Item\Discountable) {
+		if ($item instanceof Item\Discountable && (empty($flags) || $flags & $item::PRICE_ITEM_DISCOUNT)) {
 			$price = $price + array_sum($item->getItemDiscounts());
 		}
 
@@ -267,14 +291,23 @@ class Cart
 	 */
 	public function removeItems(string ...$keys): Cart
 	{
-		if (count($keys)) {
-			$this->data['items'] = $this->getItems(function($item) use ($keys) {
-				return !in_array($item->getItemKey(), $keys);
-			});
+		if (!count($keys)) {
+			return $this->removeItems(...array_map(function ($item) {
+				return $item->getItemKey();
+			}, $this->getItems()));
 
 		} else {
-			$this->data['items'] = array();
+			foreach ($keys as $key) {
+				$item = $this->getItem($key);
 
+				if (!$item) {
+					throw new InvalidArgumentException('Invalid key specified for item removal');
+				}
+			}
+
+			$this->data['items'] = $this->getItems(function ($item) use ($keys) {
+				return !in_array($item->getItemKey(), $keys);
+			});
 		}
 
 		return $this;
@@ -286,13 +319,31 @@ class Cart
 	 */
 	public function removePromotions(string ...$keys): Cart
 	{
-		if (count($keys)) {
-			foreach ($keys as $key) {
-				unset($this->data['promotions'][md5($key)]);
-			}
+		if (!count($keys)) {
+			return $this->removePromotions(...array_map(function ($promotion) {
+				return $promotion->getPromotionKey();
+			}, $this->getPromotions()));
 
 		} else {
-			$this->data['promotions'] = array();
+			$discountable_items = $this->getItems(function($item) {
+				return $item instanceof Discountable;
+			});
+
+			foreach ($keys as $key) {
+				$promotion = $this->getPromotion($key);
+
+				if (!$promotion) {
+					throw new InvalidArgumentException('Invalid key specified for promotion removal');
+				}
+
+				foreach ($discountable_items as $discountable_item) {
+					$discountable_item->setItemDiscount($key, NULL);
+				}
+			}
+
+			$this->data['promotions'] = $this->getPromotions(function ($promotion) use ($keys) {
+				return !in_array($promotion->getPromotionKey(), $keys);
+			});
 		}
 
 		return $this;
@@ -322,6 +373,10 @@ class Cart
 	 */
 	public function save(): Cart
 	{
+		uasort($this->data['items'], function ($a, $b) {
+			return $a->getItemPriority() - $b->getItemPriority();
+		});
+
 		$data = $this->data;
 
 		foreach ($data as $key => $values) {
@@ -349,53 +404,4 @@ class Cart
 
 		return $this;
  	}
-
-
-	/**
-	 *
-	 */
-	protected function refresh(): Cart
-	{
-		$applied_promotions = array();
-		$discountable_items = $this->getItems(function($item) {
-			return $item instanceof Item\Discountable;
-		});
-
-		foreach ($discountable_items as $item) {
-			$item->clearItemDiscounts();
-
-			foreach ($this->data['promotions'] as $key => $promotion) {
-				$discount = $promotion->discount($item, $this);
-				$price    = $this->price($item);
-
-				if ($discount == 0) {
-					continue;
-				}
-
-				if ($price == 0) {
-					continue;
-				}
-
-				if (abs($discount) > $this->price($item)) {
-					$discount = $price;
-				}
-
-				$item->setItemDiscount($promotion->getPromotionKey(), $discount);
-
-				if (!in_array($key, $applied_promotions)) {
-					$applied_promotions[] = $key;
-				}
-			}
-		}
-
-		foreach (array_diff(array_keys($this->data['promotions']), $applied_promotions) as $key) {
-			unset($this->data['promotions'][$key]);
-		}
-
-		uasort($this->data['items'], function($a, $b) {
-			return $a->getItemPriority() - $b->getItemPriority();
-		});
-
-		return $this;
-	}
 }
