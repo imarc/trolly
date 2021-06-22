@@ -74,7 +74,7 @@ class Cart
 			$this->data['items'][] = $item;
 		}
 
-		return $this->refresh();
+		return $this;
 	}
 
 
@@ -85,6 +85,7 @@ class Cart
 	{
 		$holds        = array();
 		$throw        = array();
+		$scrap        = array();
 		$count        = 0;
 		$items        = $promotion->getQualifiedItems($this, $holds, $throw);
 		$promo_key    = $promotion->getPromotionKey();
@@ -102,8 +103,9 @@ class Cart
 					$item->setItemDiscount($promo_key, $discount * -1);
 					$item = NULL;
 					$count++;
+
 				} else {
-					$item->setItemDiscount($promo_key, 0);
+					array_unshift($scrap, $item);
 					$item = array_shift($holds);
 				}
 			}
@@ -115,11 +117,15 @@ class Cart
 			);
 		}
 
-		foreach ($holds as $hold) {
-			$hold->setItemDiscount($promo_key, 0);
-		}
-
 		$this->data['promotions'][] = $promotion;
+
+		array_walk($holds, function($item) {
+			$item->setItemDiscount($promo_key, 0);
+		});
+
+		array_walk($scrap, function ($item) {
+			$item->setItemDiscount($promo_key, 0);
+		});
 
 		return $this;
 	}
@@ -283,8 +289,20 @@ class Cart
 			$price = $price * $item->getItemQuantity();
 		}
 
-		if ($item instanceof Item\Discountable && (empty($flags) || $flags & $item::PRICE_ITEM_DISCOUNT)) {
-			$price = $price + array_sum($item->getItemDiscounts());
+		if ($item instanceof Item\Discountable && (empty($flags) || $flags & $item::PRICE_ITEM_FIXED_DISCOUNT)) {
+			foreach ($item->getItemDiscounts() as $key => $amount) {
+				if ($this->getPromotion($key)->getPromotionType() == Promotion::TYPE_FIXED) {
+					$price += $amount;
+				}
+			}
+		}
+
+		if ($item instanceof Item\Discountable && (empty($flags) || $flags & $item::PRICE_ITEM_PERCENT_DISCOUNT)) {
+			foreach ($item->getItemDiscounts() as $key => $amount) {
+				if ($this->getPromotion($key)->getPromotionType() == Promotion::TYPE_PERCENT) {
+					$price += $amount;
+				}
+			}
 		}
 
 		return $price;
@@ -296,15 +314,25 @@ class Cart
 	 */
 	public function refresh(): Cart
 	{
+		uasort($this->data['items'], function ($a, $b) {
+			return $a->getItemPriority() - $b->getItemPriority();
+		});
+
+		uasort($this->data['promotions'], function ($a, $b) {
+			return $a->getPromotionType() - $b->getPromotionType();
+		});
+
 		$promotions = $this->getPromotions();
 
-		$this->removePromotions();
+		if (count($promotions)) {
+			$this->removePromotions();
 
-		foreach ($promotions as $promotion) {
-			try {
-				$this->addPromotion($promotion);
-			} catch (InvalidPromotionException $e) {
-				continue;
+			foreach ($promotions as $promotion) {
+				try {
+					$this->addPromotion($promotion);
+				} catch (InvalidPromotionException $e) {
+					continue;
+				}
 			}
 		}
 
@@ -338,7 +366,7 @@ class Cart
 			});
 		}
 
-		return $this->refresh();
+		return $this;
 	}
 
 
@@ -403,9 +431,7 @@ class Cart
 	 */
 	public function save(): Cart
 	{
-		uasort($this->data['items'], function ($a, $b) {
-			return $a->getItemPriority() - $b->getItemPriority();
-		});
+		$this->refresh();
 
 		$data = $this->data;
 
