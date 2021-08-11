@@ -60,7 +60,7 @@ class Cart
 				$this->removeItems($item->getItemKey());
 				$this->addItem($item);
 
-			} elseif ($item instanceof Item\Quantifiable) {
+			} elseif ($existing_item instanceof Item\Quantifiable && $item instanceof Item\Quantifiable) {
 				$existing_item->setItemQuantity(
 					$existing_item->getItemQuantity() + $item->getItemQuantity()
 				);
@@ -119,11 +119,11 @@ class Cart
 
 		$this->data['promotions'][] = $promotion;
 
-		array_walk($holds, function($item) {
+		array_walk($holds, function($item) use ($promo_key) {
 			$item->setItemDiscount($promo_key, 0);
 		});
 
-		array_walk($scrap, function ($item) {
+		array_walk($scrap, function ($item) use ($promo_key) {
 			$item->setItemDiscount($promo_key, 0);
 		});
 
@@ -285,7 +285,7 @@ class Cart
 		$pricer = $this->getPricer($item);
 		$price  = $pricer->price($item, $this, $flags, $context);
 
-		if ($item instanceof Item\Quantifiable && (empty($flags) || $flags & $item::PRICE_QUANTITY)) {
+		if ($item instanceof Item\Quantifiable && (empty($flags) || $flags & Item\Quantifiable::PRICE_ITEM_QUANTITY)) {
 			$price = $price * $item->getItemQuantity();
 		}
 

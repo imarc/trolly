@@ -20,7 +20,7 @@ interface Discountable
 	 *
 	 * @return array The discount amounts applied to this item, keyed by their promotion ID.
 	 */
-	public function getItemDiscounts($non_zero_only): array;
+	public function getItemDiscounts($non_zero_only = FALSE): array;
 
 
 	/**
