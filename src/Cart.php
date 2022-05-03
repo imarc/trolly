@@ -119,13 +119,15 @@ class Cart
 
 		$this->data['promotions'][] = $promotion;
 
-		array_walk($holds, function($item) use ($promo_key) {
-			$item->setItemDiscount($promo_key, 0);
-		});
+		if ($promotion->getItemMinimum() > 1) {
+			array_walk($holds, function ($item) use ($promo_key) {
+				$item->setItemDiscount($promo_key, 0);
+			});
 
-		array_walk($scrap, function ($item) use ($promo_key) {
-			$item->setItemDiscount($promo_key, 0);
-		});
+			array_walk($scrap, function ($item) use ($promo_key) {
+				$item->setItemDiscount($promo_key, 0);
+			});
+		}
 
 		return $this;
 	}
