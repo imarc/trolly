@@ -293,7 +293,7 @@ class Cart
 
 		if ($item instanceof Item\Discountable && (empty($flags) || $flags & $item::PRICE_ITEM_FIXED_DISCOUNT)) {
 			foreach ($item->getItemDiscounts() as $key => $amount) {
-				if ($this->getPromotion($key)->getPromotionType() == Promotion::TYPE_FIXED) {
+				if (!$this->getPromotion($key)->isPercentDiscount()) {
 					$price += $amount;
 				}
 			}
@@ -301,7 +301,7 @@ class Cart
 
 		if ($item instanceof Item\Discountable && (empty($flags) || $flags & $item::PRICE_ITEM_PERCENT_DISCOUNT)) {
 			foreach ($item->getItemDiscounts() as $key => $amount) {
-				if ($this->getPromotion($key)->getPromotionType() == Promotion::TYPE_PERCENT) {
+				if ($this->getPromotion($key)->isPercentDiscount()) {
 					$price += $amount;
 				}
 			}

@@ -2,10 +2,12 @@
 
 namespace Trolly\Item;
 
+use Trolly;
+
 /**
  *
  */
-interface Discountable
+interface Discountable extends Trolly\Item
 {
 	const PRICE_ITEM_FIXED_DISCOUNT = 2147483648;
 	const PRICE_ITEM_PERCENT_DISCOUNT = 4294967296;
@@ -14,6 +16,7 @@ interface Discountable
 		  self::PRICE_ITEM_FIXED_DISCOUNT
 		+ self::PRICE_ITEM_PERCENT_DISCOUNT
 	);
+
 
 	/**
 	 * Get item discounts on this item.

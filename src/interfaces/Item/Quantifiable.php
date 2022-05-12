@@ -2,11 +2,13 @@
 
 namespace Trolly\Item;
 
+use Trolly;
+
 /**
  *  This interface should be used to designate that a Item item has quantity information
  *  that can be retrieved or set.
  */
-interface Quantifiable
+interface Quantifiable extends Trolly\Item
 {
 	const PRICE_ITEM_QUANTITY = 1073741824;
 
