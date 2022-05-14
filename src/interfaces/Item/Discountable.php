@@ -32,4 +32,12 @@ interface Discountable extends Trolly\Item
 	 * @return Discountable The item instance for method chaining
 	 */
 	public function setItemDiscount(string $id, ?float $amount): Discountable;
+
+
+	/**
+	 * A discount map provides a way to map specific pricing flags to specific promotion types.
+	 *
+	 * @return array The discount map for the item
+	 */
+	public function getItemDiscountMap(): array;
 }

@@ -7,6 +7,9 @@ namespace Trolly;
  */
 interface Promotion
 {
+	const TYPE_FIXED = 1;
+	const TYPE_PERCENT = 2;
+
 	/**
 	 *
 	 */
@@ -36,6 +39,10 @@ interface Promotion
 	 */
 	public function getQualifiedItemDiscount(Item\Discountable $item, Cart $cart): float;
 
+	/**
+	 *
+	 */
+	public function isFixedDiscount(): bool;
 
 	/**
 	 *

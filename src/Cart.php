@@ -291,18 +291,42 @@ class Cart
 			$price = $price * $item->getItemQuantity();
 		}
 
-		if ($item instanceof Item\Discountable && (empty($flags) || $flags & $item::PRICE_ITEM_FIXED_DISCOUNT)) {
-			foreach ($item->getItemDiscounts() as $key => $amount) {
-				if (!$this->getPromotion($key)->isPercentDiscount()) {
-					$price += $amount;
-				}
-			}
-		}
+		if ($item instanceof Item\Discountable) {
+			$discount_map = $item->getItemDiscountMap();
 
-		if ($item instanceof Item\Discountable && (empty($flags) || $flags & $item::PRICE_ITEM_PERCENT_DISCOUNT)) {
 			foreach ($item->getItemDiscounts() as $key => $amount) {
-				if ($this->getPromotion($key)->isPercentDiscount()) {
+				$promotion   = $this->getPromotion($key);
+				$use_fixed   = $flags & $item::PRICE_ITEM_FIXED_DISCOUNT;
+				$use_percent = $flags & $item::PRICE_ITEM_PERCENT_DISCOUNT;
+
+				if (empty($flags)) {
 					$price += $amount;
+
+				} else {
+					if ($promotion->isPercentDiscount() && !$use_percent) {
+						continue;
+					}
+
+					if ($promotion->isFixedDiscount() && !$use_fixed) {
+						continue;
+					}
+
+					if ($discount_map) {
+						foreach ($discount_map as $flag => $types) {
+							if (!($flags & $flag)) {
+								continue;
+							}
+
+							if (!in_array($promotion->getPromotionType(), $types)) {
+								continue;
+							}
+
+							$price += $amount;
+						}
+
+					} else {
+						$price += $amount;
+					}
 				}
 			}
 		}
