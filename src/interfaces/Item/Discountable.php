@@ -23,7 +23,7 @@ interface Discountable extends Trolly\Item
 	 *
 	 * @return array The discount amounts applied to this item, keyed by their promotion ID.
 	 */
-	public function getItemDiscounts($non_zero_only = FALSE): array;
+	public function getItemDiscounts(Trolly\Cart $cart, $flags = 0, $non_zero_only = FALSE): array;
 
 
 	/**
