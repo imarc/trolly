@@ -294,7 +294,7 @@ class Cart
 		if ($item instanceof Item\Discountable) {
 			$discount_map = $item->getItemDiscountMap();
 
-			foreach ($item->getItemDiscounts() as $key => $amount) {
+			foreach ($item->getItemDiscounts($this) as $key => $amount) {
 				$promotion   = $this->getPromotion($key);
 				$use_fixed   = $flags & $item::PRICE_ITEM_FIXED_DISCOUNT;
 				$use_percent = $flags & $item::PRICE_ITEM_PERCENT_DISCOUNT;
