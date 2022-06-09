@@ -35,6 +35,12 @@ class Cart
 	/**
 	 *
 	 */
+	protected $taxers = array();
+
+
+	/**
+	 *
+	 */
 	protected $normalizers = array();
 
 
@@ -240,12 +246,53 @@ class Cart
 	/**
 	 *
 	 */
+	public function getTaxApplicators(Item $item)
+	{
+		$taxers = array();
+
+		foreach ($this->taxers as $taxer) {
+			if ($taxer->match($item)) {
+				$taxers[] = $taxer;
+			}
+		}
+
+		return $taxers;
+	}
+
+
+	/**
+	 *
+	 */
 	public function getTotal(): float
+	{
+		return $this->getTotalPrice() + $this->getTotalTax();
+	}
+
+
+	/**
+	 *
+	 */
+	public function getTotalPrice(): float
 	{
 		$total = 0;
 
 		foreach ($this->data['items'] as $item) {
 			$total = $total + $this->price($item);
+		}
+
+		return $total;
+	}
+
+
+	/**
+	 *
+	 */
+	public function getTotalTax(): float
+	{
+		$total = 0;
+
+		foreach ($this->data['items'] as $item) {
+			$total += array_sum($item->getTaxAmounts());
 		}
 
 		return $total;
@@ -274,6 +321,8 @@ class Cart
 		}
 
 		$this->data = $data;
+
+		$this->refresh();
 
 		return $this;
 	}
@@ -359,6 +408,14 @@ class Cart
 				} catch (InvalidPromotionException $e) {
 					continue;
 				}
+			}
+		}
+
+		foreach ($this->data['items'] as $item) {
+			$taxers = $this->getTaxApplicators($item);
+
+			foreach ($taxers as $taxer) {
+				$taxer->apply($item, $this);
 			}
 		}
 
@@ -449,6 +506,15 @@ class Cart
 	public function setPricers(Pricer ...$pricers)
 	{
 		$this->pricers = $pricers;
+	}
+
+
+	/**
+	 *
+	 */
+	public function setTaxApplicators(TaxApplicator ...$taxers)
+	{
+		$this->taxers = $taxers;
 	}
 
 
