@@ -95,10 +95,6 @@ class Cart
 				$discount = $promotion->getQualifiedItemDiscount($item, $this);
 				$price    = $this->price($item);
 
-				if ($discount > $price) {
-					$discount = $price;
-				}
-
 				if ($discount) {
 					$item->setItemDiscount($promo_key, $discount * -1);
 					$item = NULL;
