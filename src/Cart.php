@@ -93,7 +93,6 @@ class Cart
 		foreach ($items as $item) {
 			while ($item) {
 				$discount = $promotion->getQualifiedItemDiscount($item, $this);
-				$price    = $this->price($item);
 
 				if ($discount) {
 					$item->setItemDiscount($promo_key, $discount * -1);
