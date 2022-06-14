@@ -5,7 +5,7 @@ namespace Trolly;
 /**
  *
  */
-interface TaxApplicator
+interface Taxer
 {
 	/**
 	 *

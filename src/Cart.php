@@ -246,7 +246,7 @@ class Cart
 	/**
 	 *
 	 */
-	public function getTaxApplicators(Item $item)
+	public function getTaxers(Item $item)
 	{
 		$taxers = array();
 
@@ -321,8 +321,6 @@ class Cart
 		}
 
 		$this->data = $data;
-
-		$this->refresh();
 
 		return $this;
 	}
@@ -412,7 +410,7 @@ class Cart
 		}
 
 		foreach ($this->data['items'] as $item) {
-			$taxers = $this->getTaxApplicators($item);
+			$taxers = $this->getTaxers($item);
 
 			foreach ($taxers as $taxer) {
 				$taxer->apply($item, $this);
@@ -512,7 +510,7 @@ class Cart
 	/**
 	 *
 	 */
-	public function setTaxApplicators(TaxApplicator ...$taxers)
+	public function setTaxers(Taxer ...$taxers)
 	{
 		$this->taxers = $taxers;
 	}

@@ -1,7 +1,7 @@
 <?php
 namespace Trolly;
 
-class SalesTaxApplicator implements TaxApplicator
+class SalesTaxer implements Taxer
 {
 	const LABEL = 'Sales Tax';
 	const RATE  = 0.0875;
