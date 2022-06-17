@@ -10,7 +10,7 @@ interface Taxer
 	/**
 	 *
 	 */
-	public function match(Item\Taxable $item): bool;
+	public function match(Item $item): bool;
 
 
 	/**

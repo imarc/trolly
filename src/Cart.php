@@ -292,7 +292,9 @@ class Cart
 		$total = 0;
 
 		foreach ($this->data['items'] as $item) {
-			$total += array_sum($item->getTaxAmounts());
+			if ($item instanceof Item\Taxable) {
+				$total += array_sum($item->getTaxAmounts());
+			}
 		}
 
 		return $total;
