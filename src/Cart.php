@@ -258,20 +258,24 @@ class Cart
 	/**
 	 *
 	 */
-	public function getTotal(): float
+	public function getTotal($group = NULL): float
 	{
-		return $this->getTotalPrice() + $this->getTotalTax();
+		return $this->getTotalPrice($group) + $this->getTotalTax($group);
 	}
 
 
 	/**
 	 *
 	 */
-	public function getTotalPrice(): float
+	public function getTotalPrice($group = NULL): float
 	{
 		$total = 0;
 
 		foreach ($this->data['items'] as $item) {
+			if ($group && $item->getItemGroup() != $group) {
+				continue;
+			}
+
 			$total = $total + $this->price($item);
 		}
 
@@ -282,14 +286,20 @@ class Cart
 	/**
 	 *
 	 */
-	public function getTotalTax(): float
+	public function getTotalTax($group = NULL): float
 	{
 		$total = 0;
 
 		foreach ($this->data['items'] as $item) {
-			if ($item instanceof Item\Taxable) {
-				$total += array_sum($item->getTaxAmounts());
+			if ($group && $item->getItemGroup() != $group) {
+				continue;
 			}
+
+			if (!$item instanceof Item\Taxable) {
+				continue;
+			}
+
+			$total += array_sum($item->getTaxAmounts());
 		}
 
 		return $total;
