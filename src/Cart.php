@@ -272,7 +272,7 @@ class Cart
 		$total = 0;
 
 		foreach ($this->data['items'] as $item) {
-			if ($group && $item->getItemGroup() != $group) {
+			if ($group && $item->getTransactionGroup() != $group) {
 				continue;
 			}
 
@@ -291,7 +291,7 @@ class Cart
 		$total = 0;
 
 		foreach ($this->data['items'] as $item) {
-			if ($group && $item->getItemGroup() != $group) {
+			if ($group && $item->getTransactionGroup() != $group) {
 				continue;
 			}
 
