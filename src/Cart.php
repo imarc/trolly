@@ -246,7 +246,7 @@ class Cart
 		$taxers = array();
 
 		foreach ($this->taxers as $taxer) {
-			if ($taxer->match($item)) {
+			if ($taxer->match($item, $this)) {
 				$taxers[] = $taxer;
 			}
 		}

@@ -10,7 +10,7 @@ class SalesTaxer implements Taxer
 	/**
 	 *
 	 */
-	public function match(Item $item): bool
+	public function match(Item $item, Cart $cart): bool
 	{
 		return $item instanceof Item\Taxable;
 	}
@@ -19,7 +19,7 @@ class SalesTaxer implements Taxer
 	/**
 	 *
 	 */
-	public function apply(Item $item, Cart $cart)
+	public function apply(Item $item, Cart $cart, array $context = array())
 	{
 		return $item->setTaxAmount(self::LABEL, $item->getPrice($cart) * self::RATE);
 	}
