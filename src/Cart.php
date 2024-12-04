@@ -395,7 +395,11 @@ class Cart
 	public function refresh(): Cart
 	{
 		uasort($this->data['items'], function ($a, $b) {
-			return $a->getItemPriority() - $b->getItemPriority();
+			if ($a->getItemPriority() != $b->getItemPriority()) {
+				return $a->getItemPriority() - $b->getItemPriority();
+			} else {
+				return strcmp($a->getItemKey(), $b->getItemKey());
+			}
 		});
 
 		uasort($this->data['promotions'], function ($a, $b) {
