@@ -541,6 +541,7 @@ class Cart
 				foreach ($this->normalizers as $normalizer) {
 					if ($normalizer->match($value)) {
 						$data[$key][$index] = $normalizer->normalize($value);
+						break;
 					}
 				}
 			}
