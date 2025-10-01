@@ -422,6 +422,7 @@ class Cart
 
 		foreach ($this->data['items'] as $item) {
 			$taxers = $this->getTaxers($item);
+			$item->removeTaxes();
 
 			foreach ($taxers as $taxer) {
 				$taxer->apply($item, $this);

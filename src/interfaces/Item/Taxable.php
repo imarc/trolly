@@ -30,6 +30,12 @@ interface Taxable extends Trolly\Item
 
 
 	/**
+	 * 
+	 */
+	public function removeTaxes();
+
+	
+	/**
 	 *
 	 */
 	public function setTaxAmount($label, $amount);
