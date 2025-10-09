@@ -421,11 +421,13 @@ class Cart
 		}
 
 		foreach ($this->data['items'] as $item) {
-			$taxers = $this->getTaxers($item);
-			$item->removeTaxes();
+			if ($item instanceof Item\Taxable) {
+				$taxers = $this->getTaxers($item);
+				$item->removeTaxes();
 
-			foreach ($taxers as $taxer) {
-				$taxer->apply($item, $this);
+				foreach ($taxers as $taxer) {
+					$taxer->apply($item, $this);
+				}
 			}
 		}
 
