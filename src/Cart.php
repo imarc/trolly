@@ -420,6 +420,15 @@ class Cart
 			}
 		}
 
+		return $this;
+	}
+
+
+	/**
+	 * 
+	 */
+	public function applyTax(): Cart
+	{
 		foreach ($this->data['items'] as $item) {
 			if ($item instanceof Item\Taxable) {
 				$taxers = $this->getTaxers($item);
@@ -535,8 +544,6 @@ class Cart
 	 */
 	public function save(): Cart
 	{
-		$this->refresh();
-
 		$data = $this->data;
 
 		foreach ($data as $key => $values) {
