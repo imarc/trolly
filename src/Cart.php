@@ -392,7 +392,7 @@ class Cart
 	/**
 	 *
 	 */
-	public function refresh(): Cart
+	public function refresh($tax = FALSE): Cart
 	{
 		uasort($this->data['items'], function ($a, $b) {
 			if ($a->getItemPriority() != $b->getItemPriority()) {
@@ -418,6 +418,10 @@ class Cart
 					continue;
 				}
 			}
+		}
+
+		if ($tax) {
+			$this->applyTax();
 		}
 
 		return $this;
@@ -542,9 +546,11 @@ class Cart
 	/**
 	 *
 	 */
-	public function save(): Cart
+	public function save($tax = FALSE): Cart
 	{
 		$data = $this->data;
+
+		$this->refresh($tax);
 
 		foreach ($data as $key => $values) {
 			foreach ($values as $index => $value) {
