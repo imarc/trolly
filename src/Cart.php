@@ -47,13 +47,13 @@ class Cart
 	/**
 	 *
 	 */
-	protected $storage;
+	public $storage;
 
 
 	/**
 	 *
 	 */
-	protected $purchaser;
+	public $purchaser;
 
 
 	/**
