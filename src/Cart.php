@@ -47,6 +47,18 @@ class Cart
 	/**
 	 *
 	 */
+	protected $storage;
+
+
+	/**
+	 *
+	 */
+	protected $purchaser;
+
+
+	/**
+	 *
+	 */
 	public function __construct(Storage $storage, $purchaser = NULL)
 	{
 		$this->storage   = $storage;
