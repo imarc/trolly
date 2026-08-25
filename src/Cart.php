@@ -152,7 +152,7 @@ class Cart
 	/**
 	 *
 	 */
-	public function getItems(callable $filter = NULL): array
+	public function getItems(?callable $filter = NULL): array
 	{
 		if (!$filter) {
 			return $this->data['items'];
@@ -219,7 +219,7 @@ class Cart
 	/**
 	 *
 	 */
-	public function getPromotions(callable $filter = NULL): array
+	public function getPromotions(?callable $filter = NULL): array
 	{
 		if (!$filter) {
 			return $this->data['promotions'];
