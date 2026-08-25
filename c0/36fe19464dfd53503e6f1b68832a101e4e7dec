@@ -1,0 +1,19 @@
+src/Cart.php
+  s_31b3329ef47d63::t_63e83db24bc77c 155,222
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "c036fe19464dfd53503e6f1b68832a101e4e7dec",
+  "prompts": {},
+  "sessions": {
+    "s_31b3329ef47d63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e272af79-ebcc-480e-8d51-ad59d0767182",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Austin Fishbaugh <austinfishbaugh@imarc.com>"
+    }
+  }
+}
